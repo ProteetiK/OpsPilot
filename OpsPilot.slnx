@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/api-dotnet/">
+    <Project Path="src/api-dotnet/OpsPilot.Api/OpsPilot.Api.csproj" />
+    <Project Path="src/api-dotnet/OpsPilot.Application/OpsPilot.Application.csproj" />
+    <Project Path="src/api-dotnet/OpsPilot.Domain/OpsPilot.Domain.csproj" />
+    <Project Path="src/api-dotnet/OpsPilot.Infrastructure/OpsPilot.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/api-dotnet/">
+    <Project Path="tests/api-dotnet/OpsPilot.Api.Tests/OpsPilot.Api.Tests.csproj" />
+  </Folder>
+</Solution>

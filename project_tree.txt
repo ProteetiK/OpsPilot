@@ -1,0 +1,152 @@
+OpsPilot/
+├── .github
+│   └── workflows
+│       ├── .gitkeep
+│       └── README.md
+├── .vs
+│   ├── OpsPilot
+│   │   ├── config
+│   │   │   └── applicationhost.config
+│   │   ├── FileContentIndex
+│   │   │   ├── 0d200094-4eb4-4ddf-a36e-e271e247f322.vsidx
+│   │   │   ├── 238a70ab-b373-4b6e-a1fa-c1080ea23b00.vsidx
+│   │   │   ├── 5b2aecab-cae6-45b3-9c3b-a9f5ca869d7d.vsidx
+│   │   │   ├── 5eeb8857-5aa7-4862-9c24-cb76707c2893.vsidx
+│   │   │   └── cd499c63-17ad-4a9d-ab3a-833e940d11f8.vsidx
+│   │   └── v18
+│   │       ├── .wsuo
+│   │       └── DocumentLayout.json
+│   ├── slnx.sqlite
+│   └── VSWorkspaceState.json
+├── docs
+│   ├── adr
+│   │   └── README.md
+│   ├── api
+│   ├── architecture
+│   │   └── README.md
+│   ├── data-model
+│   ├── demo
+│   ├── evaluation
+│   └── security
+│       └── OPS-101-Authentication.md
+├── infra
+│   ├── azure
+│   ├── docker
+│   │   └── README.md
+│   ├── monitoring
+│   │   ├── grafana
+│   │   │   ├── dashboards
+│   │   │   └── provisioning
+│   │   └── prometheus
+│   ├── rabbitmq
+│   └── scripts
+├── src
+│   ├── ai-service
+│   │   ├── app
+│   │   │   ├── agents
+│   │   │   │   └── nodes
+│   │   │   ├── api
+│   │   │   ├── core
+│   │   │   ├── evaluation
+│   │   │   ├── ingestion
+│   │   │   ├── integrations
+│   │   │   ├── retrieval
+│   │   │   └── schemas
+│   │   ├── tests
+│   │   │   ├── integration
+│   │   │   └── unit
+│   │   ├── .env.example
+│   │   └── README.md
+│   ├── api-dotnet
+│   │   ├── OpsPilot.Api
+│   │   │   ├── Authorization
+│   │   │   ├── Contracts
+│   │   │   │   ├── LoginRequest.cs
+│   │   │   │   └── LoginResponse.cs
+│   │   │   ├── Controllers
+│   │   │   │   ├── AuthController.cs
+│   │   │   │   └── MeController.cs
+│   │   │   ├── Middleware
+│   │   │   ├── Properties
+│   │   │   │   └── launchSettings.json
+│   │   │   ├── Security
+│   │   │   │   ├── JwtOptions.cs
+│   │   │   │   └── JwtTokenService.cs
+│   │   │   ├── .env
+│   │   │   ├── appsettings.Development.json
+│   │   │   ├── appsettings.json
+│   │   │   ├── OpsPilot.Api.csproj
+│   │   │   ├── OpsPilot.Api.http
+│   │   │   └── Program.cs
+│   │   ├── OpsPilot.Application
+│   │   │   ├── Authentication
+│   │   │   │   ├── AuthenticatedUser.cs
+│   │   │   │   └── IAuthService.cs
+│   │   │   ├── DTOs
+│   │   │   ├── Interfaces
+│   │   │   ├── Services
+│   │   │   ├── Class1.cs
+│   │   │   └── OpsPilot.Application.csproj
+│   │   ├── OpsPilot.Domain
+│   │   │   ├── Entities
+│   │   │   │   ├── Service.cs
+│   │   │   │   └── User.cs
+│   │   │   ├── Enums
+│   │   │   ├── Events
+│   │   │   ├── Exceptions
+│   │   │   ├── Class1.cs
+│   │   │   └── OpsPilot.Domain.csproj
+│   │   ├── OpsPilot.Infrastructure
+│   │   │   ├── Authentication
+│   │   │   │   ├── AuthService.cs
+│   │   │   │   └── DemoUserSeeder.cs
+│   │   │   ├── Messaging
+│   │   │   ├── Observability
+│   │   │   ├── Persistence
+│   │   │   │   ├── Configurations
+│   │   │   │   ├── Migrations
+│   │   │   │   ├── Sql
+│   │   │   │   │   ├── 001_InitialCreate.sql
+│   │   │   │   │   └── 002_AddUsers.sql
+│   │   │   │   └── AppDbContext.cs
+│   │   │   ├── Repositories
+│   │   │   ├── Storage
+│   │   │   ├── Class1.cs
+│   │   │   └── OpsPilot.Infrastructure.csproj
+│   │   └── README.md
+│   └── web
+│       ├── public
+│       ├── src
+│       │   ├── components
+│       │   ├── features
+│       │   │   ├── dashboard
+│       │   │   ├── incidents
+│       │   │   ├── investigations
+│       │   │   └── services
+│       │   ├── hooks
+│       │   ├── lib
+│       │   ├── pages
+│       │   └── types
+│       └── README.md
+├── tests
+│   ├── api
+│   ├── api-dotnet
+│   │   └── OpsPilot.Api.Tests
+│   │       ├── AuthenticationTests.cs
+│   │       ├── CustomWebApplicationFactory.cs
+│   │       ├── OpsPilot.Api.Tests.csproj
+│   │       └── Usings.cs
+│   ├── e2e
+│   ├── performance
+│   └── test-data
+│       ├── incidents
+│       ├── runbooks
+│       └── telemetry
+├── .env
+├── .gitattributes
+├── .gitignore
+├── docker-compose.yml
+├── OpsPilot.slnx
+├── project_tree.py
+├── README.md
+└── requirements.txt
