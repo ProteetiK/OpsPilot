@@ -24,7 +24,7 @@ public class AuthenticationTests
         using var factory = new CustomWebApplicationFactory();
         using var client = factory.CreateClient();
 
-        var response = await client.GetAsync("/api/auth/me");
+        var response = await client.GetAsync("/api/v1/auth/me");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -38,7 +38,7 @@ public class AuthenticationTests
         await factory.SeedUserAsync(TestEmail, TestPassword);
 
         var response = await client.PostAsJsonAsync(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             new { email = TestEmail, password = TestPassword });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -60,7 +60,7 @@ public class AuthenticationTests
         await factory.SeedUserAsync(TestEmail, TestPassword);
 
         var response = await client.PostAsJsonAsync(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             new { email = TestEmail, password = "Wrong-Password-123!" });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -73,7 +73,7 @@ public class AuthenticationTests
         using var client = factory.CreateClient();
 
         var response = await client.PostAsJsonAsync(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             new
             {
                 email = "unknown@opspilot.local",
@@ -112,7 +112,7 @@ public class AuthenticationTests
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", tokenString);
 
-        var response = await client.GetAsync("/api/auth/me");
+        var response = await client.GetAsync("/api/v1/auth/me");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -127,7 +127,7 @@ public class AuthenticationTests
             TestEmail, TestPassword, isActive: false);
 
         var response = await client.PostAsJsonAsync(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             new { email = TestEmail, password = TestPassword });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -162,7 +162,7 @@ public class AuthenticationTests
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", tokenString);
 
-        var response = await client.GetAsync("/api/auth/me");
+        var response = await client.GetAsync("/api/v1/auth/me");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -184,7 +184,7 @@ public class AuthenticationTests
             role: role);
 
         var loginResponse = await client.PostAsJsonAsync(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             new { email = TestEmail, password = TestPassword });
 
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
@@ -205,7 +205,7 @@ public class AuthenticationTests
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", login.AccessToken);
 
-        var meResponse = await client.GetAsync("/api/auth/me");
+        var meResponse = await client.GetAsync("/api/v1/auth/me");
 
         Assert.Equal(HttpStatusCode.OK, meResponse.StatusCode);
 

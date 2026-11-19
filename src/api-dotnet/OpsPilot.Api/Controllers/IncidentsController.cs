@@ -1,13 +1,15 @@
-
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpsPilot.Application.Incidents;
 using System.Security.Claims;
+using OpsPilot.Application.Common.Pagination;
 
 namespace OpsPilot.Api.Controllers;
 
 [ApiController]
-[Route("api/incidents")]
+[ApiVersion(1.0)]
+[Route("api/v{version:apiVersion}/incidents")]
 [Authorize]
 public class IncidentsController : ControllerBase
 {
@@ -20,16 +22,32 @@ public class IncidentsController : ControllerBase
 
 	// All authenticated roles can view incidents.
 	[HttpGet]
-	public async Task<IActionResult> GetIncidents(
-		CancellationToken cancellationToken)
-	{
-		var incidents = await _incidentService.GetIncidentsAsync(
-			cancellationToken);
+    public async Task<IActionResult> GetIncidents(
+    [FromQuery] PaginationParameters pagination,
+    [FromQuery] string? status,
+    [FromQuery] string? severity,
+    CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _incidentService.GetIncidentsAsync(
+                pagination,
+                status,
+                severity,
+                cancellationToken);
 
-		return Ok(incidents);
-	}
+            return Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: exception.Message);
+        }
+    }
 
-	[HttpGet("{id:guid}")]
+    [HttpGet("{id:guid}")]
 	public async Task<IActionResult> GetIncident(
 		Guid id,
 		CancellationToken cancellationToken)
@@ -57,11 +75,14 @@ public class IncidentsController : ControllerBase
 				new { id = incident.Id },
 				incident);
 		}
-		catch (ArgumentException exception)
-		{
-			return BadRequest(new { error = exception.Message });
-		}
-	}
+        catch (ArgumentException exception)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: exception.Message);
+        }
+    }
 
 	// Engineers and Administrators can update incident status.
 	[HttpPut("{id:guid}/status")]
@@ -78,11 +99,14 @@ public class IncidentsController : ControllerBase
 
 			return updated ? NoContent() : NotFound();
 		}
-		catch (ArgumentException exception)
-		{
-			return BadRequest(new { error = exception.Message });
-		}
-	}
+        catch (ArgumentException exception)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: exception.Message);
+        }
+    }
 
 	[HttpPut("{id:guid}/assignment")]
 	[Authorize(Policy = "IncidentUpdate")]
@@ -98,11 +122,14 @@ public class IncidentsController : ControllerBase
 
 			return updated ? NoContent() : NotFound();
 		}
-		catch (ArgumentException exception)
-		{
-			return BadRequest(new { error = exception.Message });
-		}
-	}
+        catch (ArgumentException exception)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: exception.Message);
+        }
+    }
 }
 
 public sealed record AssignIncidentRequest(Guid? AssignedToUserId);

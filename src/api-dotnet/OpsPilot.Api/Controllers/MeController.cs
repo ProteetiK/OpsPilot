@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -5,7 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace OpsPilot.Api.Controllers;
 
 [ApiController]
-[Route("api/auth")]
+[ApiVersion(1.0)]
+[Route("api/v{version:apiVersion}/auth")]
 [Authorize]
 public sealed class MeController : ControllerBase
 {

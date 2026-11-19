@@ -1,12 +1,14 @@
-
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpsPilot.Application.Services;
+using OpsPilot.Application.Common.Pagination;
 
 namespace OpsPilot.Api.Controllers;
 
 [ApiController]
-[Route("api/services")]
+[ApiVersion(1.0)]
+[Route("api/v{version:apiVersion}/services")]
 [Authorize]
 public class ServicesController : ControllerBase
 {
@@ -20,9 +22,13 @@ public class ServicesController : ControllerBase
     // All authenticated users can view services.
     [HttpGet]
     public async Task<IActionResult> GetServices(
-        CancellationToken cancellationToken)
+    [FromQuery] PaginationParameters pagination,
+    [FromQuery] string? search,
+    CancellationToken cancellationToken)
     {
         var services = await _serviceManagement.GetServicesAsync(
+            pagination,
+            search,
             cancellationToken);
 
         return Ok(services);
@@ -58,7 +64,10 @@ public class ServicesController : ControllerBase
         }
         catch (ArgumentException exception)
         {
-            return BadRequest(new { error = exception.Message });
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: exception.Message);
         }
     }
 
@@ -79,7 +88,10 @@ public class ServicesController : ControllerBase
         }
         catch (ArgumentException exception)
         {
-            return BadRequest(new { error = exception.Message });
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: exception.Message);
         }
     }
 }

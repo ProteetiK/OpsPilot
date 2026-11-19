@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OpsPilot.Application.Services;
 using OpsPilot.Domain.Entities;
 using OpsPilot.Infrastructure.Persistence;
+using OpsPilot.Application.Common.Pagination;
 
 namespace OpsPilot.Infrastructure.Services;
 
@@ -15,18 +16,42 @@ public sealed class ServiceManagement : IServiceManagement
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<ServiceSummary>> GetServicesAsync(
-        CancellationToken cancellationToken = default)
+    public async Task<PagedResult<ServiceSummary>> GetServicesAsync(
+    PaginationParameters parameters,
+    string? search,
+    CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Services
+        var query = _dbContext.Services
             .AsNoTracking()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.Trim().ToLower();
+
+            query = query.Where(service =>
+                service.Name.ToLower().Contains(searchTerm));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderBy(service => service.Name)
+            .ThenBy(service => service.Id)
+            .Skip((parameters.Page - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
             .Select(service => new ServiceSummary(
                 service.Id,
                 service.Name,
                 service.Description,
                 service.CreatedAtUtc))
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<ServiceSummary>(
+            items,
+            parameters.Page,
+            parameters.PageSize,
+            totalCount);
     }
 
     public async Task<ServiceSummary?> GetServiceByIdAsync(
