@@ -1,8 +1,12 @@
+using OpsPilot.Application.Common.Pagination;
+
 namespace OpsPilot.Application.Services;
 
 public interface IServiceManagement
 {
-    Task<IReadOnlyList<ServiceSummary>> GetServicesAsync(
+    Task<PagedResult<ServiceSummary>> GetServicesAsync(
+        PaginationParameters parameters,
+        string? search,
         CancellationToken cancellationToken = default);
 
     Task<ServiceSummary?> GetServiceByIdAsync(

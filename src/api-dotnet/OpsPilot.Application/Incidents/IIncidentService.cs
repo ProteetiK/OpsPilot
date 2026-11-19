@@ -1,10 +1,14 @@
 
 namespace OpsPilot.Application.Incidents;
+using OpsPilot.Application.Common.Pagination;
 
 public interface IIncidentService
 {
-    Task<IReadOnlyList<IncidentSummary>> GetIncidentsAsync(
-        CancellationToken cancellationToken = default);
+    Task<PagedResult<IncidentSummary>> GetIncidentsAsync(
+    PaginationParameters parameters,
+    string? status,
+    string? severity,
+    CancellationToken cancellationToken = default);
 
     Task<IncidentSummary?> GetIncidentByIdAsync(
         Guid id,

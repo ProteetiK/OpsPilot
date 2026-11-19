@@ -4,6 +4,8 @@ using OpsPilot.Application.Incidents;
 using OpsPilot.Domain.Entities;
 using OpsPilot.Domain.Enums;
 using OpsPilot.Infrastructure.Persistence;
+using OpsPilot.Application.Common.Pagination;
+using Microsoft.EntityFrameworkCore;
 
 namespace OpsPilot.Infrastructure.Incidents;
 
@@ -16,14 +18,63 @@ public sealed class IncidentService : IIncidentService
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<IncidentSummary>> GetIncidentsAsync(
-        CancellationToken cancellationToken = default)
+    public async Task<PagedResult<IncidentSummary>> GetIncidentsAsync(
+    PaginationParameters parameters,
+    string? status,
+    string? severity,
+    CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Incidents
+        var query = _dbContext.Incidents
             .AsNoTracking()
-            .OrderByDescending(incident => incident.CreatedAtUtc)
-            .Select(incident => ToSummary(incident))
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (!Enum.TryParse<IncidentStatus>(status, true, out var parsedStatus)
+                || !Enum.IsDefined(parsedStatus))
+            {
+                throw new ArgumentException("Invalid incident status.");
+            }
+
+            query = query.Where(i => i.Status == parsedStatus);
+        }
+
+        if (!string.IsNullOrWhiteSpace(severity))
+        {
+            if (!Enum.TryParse<IncidentSeverity>(severity, true, out var parsedSeverity)
+                || !Enum.IsDefined(parsedSeverity))
+            {
+                throw new ArgumentException("Invalid incident severity.");
+            }
+
+            query = query.Where(i => i.Severity == parsedSeverity);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(i => i.CreatedAtUtc)
+            .ThenBy(i => i.Id)
+            .Skip((parameters.Page - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
+            .Select(i => new IncidentSummary(
+                i.Id,
+                i.Title,
+                i.Description,
+                i.Severity.ToString(),
+                i.Status.ToString(),
+                i.ServiceId,
+                i.AssignedToUserId,
+                i.CreatedAtUtc,
+                i.UpdatedAtUtc
+            ))
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<IncidentSummary>(
+            items,
+            parameters.Page,
+            parameters.PageSize,
+            totalCount);
     }
 
     public async Task<IncidentSummary?> GetIncidentByIdAsync(

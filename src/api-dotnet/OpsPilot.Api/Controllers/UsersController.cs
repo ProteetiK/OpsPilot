@@ -1,14 +1,17 @@
-
+using Asp.Versioning;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpsPilot.Application.Users;
 using OpsPilot.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
+using OpsPilot.Application.Common.Pagination;
 
 namespace OpsPilot.Api.Controllers;
 
 [ApiController]
-[Route("api/users")]
+[ApiVersion(1.0)]
+[Route("api/v{version:apiVersion}/users")]
 [Authorize(Policy = "ManageUsers")]
 public sealed class UsersController : ControllerBase
 {
@@ -21,13 +24,29 @@ public sealed class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<UserSummary>>> GetUsers(
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<UserSummary>>> GetUsers(
+    [FromQuery] PaginationParameters pagination,
+    [FromQuery] string? search,
+    [FromQuery] string? role,
+    CancellationToken cancellationToken)
     {
-        var users = await _userManagementService.GetUsersAsync(
-            cancellationToken);
+        try
+        {
+            var users = await _userManagementService.GetUsersAsync(
+                pagination,
+                search,
+                role,
+                cancellationToken);
 
-        return Ok(users);
+            return Ok(users);
+        }
+        catch (ArgumentException exception)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: exception.Message);
+        }
     }
 
     [HttpPut("{id:guid}/role")]
@@ -47,10 +66,10 @@ public sealed class UsersController : ControllerBase
 
         if (!Enum.IsDefined(typeof(UserRole), request.Role))
         {
-            return BadRequest(new
-            {
-                message = "Invalid user role."
-            });
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: "Invalid user role.");
         }
 
         var result = await _userManagementService.ChangeRoleAsync(
@@ -65,14 +84,18 @@ public sealed class UsersController : ControllerBase
 
             UserManagementResult.UserNotFound => NotFound(),
 
-            UserManagementResult.CannotChangeOwnRole => BadRequest(new
-            {
-                message = "You cannot change your own role."
-            }),
+            UserManagementResult.CannotChangeOwnRole => Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: "You cannot change your own role."),
 
             _ => StatusCode(StatusCodes.Status500InternalServerError)
         };
     }
 }
 
-public sealed record ChangeUserRoleRequest(UserRole Role);
+public sealed record ChangeUserRoleRequest(
+    [Required]
+    [EnumDataType(typeof(UserRole))]
+    UserRole Role
+);

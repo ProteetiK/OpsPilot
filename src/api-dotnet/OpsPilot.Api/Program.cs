@@ -1,4 +1,4 @@
-
+using Asp.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using OpsPilot.Infrastructure.Persistence;
@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OpsPilot.Api.Security;
-using OpsPilot.Infrastructure.Authentication;
 using OpsPilot.Application.Users;
 using OpsPilot.Infrastructure.Users;
 using OpsPilot.Application.Incidents;
@@ -85,7 +84,7 @@ builder.Services
         tags: new[] { "ready" });
 
 // 4. Register OpenAPI
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi("v1");
 
 //5. Register JWT
 builder.Services
@@ -131,7 +130,35 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("Administrator"));
 });
 // 5. Build application
+// API versioning
+builder.Services
+    .AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+        options.ApiVersionReader = new UrlSegmentApiVersionReader();
+    })
+    .AddMvc()
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
+
+// Controllers
 builder.Services.AddControllers();
+
+// Standardized API error responses
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Extensions["traceId"] =
+            context.HttpContext.TraceIdentifier;
+    };
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -141,6 +168,18 @@ if (app.Environment.IsDevelopment())
         app.Configuration);
 }
 
+// Centralized exception handling
+//app.UseExceptionHandler();
+
+if (app.Environment.IsEnvironment("Testing"))
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -148,7 +187,7 @@ app.MapControllers();
 // 6. Configure OpenAPI in Development
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi("/openapi/{documentName}.json");
 }
 
 // 7. Liveness endpoint

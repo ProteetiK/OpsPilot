@@ -4,6 +4,7 @@ using OpsPilot.Application.Users;
 using OpsPilot.Domain.Entities;
 using OpsPilot.Domain.Enums;
 using OpsPilot.Infrastructure.Persistence;
+using OpsPilot.Application.Common.Pagination;
 
 namespace OpsPilot.Infrastructure.Users;
 
@@ -16,12 +17,40 @@ public sealed class UserManagementService : IUserManagementService
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<UserSummary>> GetUsersAsync(
-        CancellationToken cancellationToken)
+    public async Task<PagedResult<UserSummary>> GetUsersAsync(
+    PaginationParameters parameters,
+    string? search,
+    string? role,
+    CancellationToken cancellationToken)
     {
-        return await _dbContext.Users
-            .AsNoTracking()
+        var query = _dbContext.Users.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.Trim().ToLower();
+
+            query = query.Where(user =>
+                user.Email.ToLower().Contains(searchTerm));
+        }
+
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            if (!Enum.TryParse<UserRole>(role, true, out var parsedRole) ||
+                !Enum.IsDefined(typeof(UserRole), parsedRole))
+            {
+                throw new ArgumentException("Invalid user role.");
+            }
+
+            query = query.Where(user => user.Role == parsedRole);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderBy(user => user.Email)
+            .ThenBy(user => user.Id)
+            .Skip((parameters.Page - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
             .Select(user => new UserSummary(
                 user.Id,
                 user.Email,
@@ -29,6 +58,12 @@ public sealed class UserManagementService : IUserManagementService
                 user.IsActive,
                 user.CreatedAtUtc))
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<UserSummary>(
+            items,
+            parameters.Page,
+            parameters.PageSize,
+            totalCount);
     }
 
     public async Task<UserManagementResult> ChangeRoleAsync(

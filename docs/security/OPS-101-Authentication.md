@@ -15,8 +15,8 @@ OpsPilot uses JWT Bearer authentication.
 
 | Method | Endpoint | Access |
 |---|---|---|
-| POST | /api/auth/login | Anonymous |
-| GET | /api/auth/me | Authenticated |
+| POST | /api/v1/auth/login | Anonymous |
+| GET | /api/v1/auth/me | Authenticated |
 | GET | /health/live | Anonymous |
 | GET | /health/ready | Anonymous |
 
