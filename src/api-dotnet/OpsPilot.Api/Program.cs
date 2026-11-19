@@ -11,6 +11,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OpsPilot.Api.Security;
 using OpsPilot.Infrastructure.Authentication;
+using OpsPilot.Application.Users;
+using OpsPilot.Infrastructure.Users;
+using OpsPilot.Application.Incidents;
+using OpsPilot.Infrastructure.Incidents;
+using OpsPilot.Application.Services;
+using OpsPilot.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,8 +68,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Authentication
 
 builder.Services.AddScoped<IAuthService, AuthService>();
-
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+//Incidents
+builder.Services.AddScoped<IIncidentService, IncidentService>();
+
+//Service
+builder.Services.AddScoped<IServiceManagement, ServiceManagement>();
 
 // 3. Register health checks
 builder.Services
@@ -99,8 +111,25 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Engineers and Administrators can investigate and update incidents.
+    options.AddPolicy("IncidentInvestigation", policy =>
+        policy.RequireRole("Engineer", "Administrator"));
 
+    options.AddPolicy("IncidentUpdate", policy =>
+        policy.RequireRole("Engineer", "Administrator"));
+
+    // Only Administrators can manage services and users.
+    options.AddPolicy("ManageServices", policy =>
+        policy.RequireRole("Administrator"));
+
+    options.AddPolicy("ManageUsers", policy =>
+        policy.RequireRole("Administrator"));
+
+    options.AddPolicy("AssignRoles", policy =>
+        policy.RequireRole("Administrator"));
+});
 // 5. Build application
 builder.Services.AddControllers();
 var app = builder.Build();

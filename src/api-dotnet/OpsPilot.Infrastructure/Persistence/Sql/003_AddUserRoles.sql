@@ -1,0 +1,11 @@
+ALTER TABLE "Users"
+ADD COLUMN IF NOT EXISTS "Role"
+VARCHAR(30) NOT NULL DEFAULT 'Viewer';
+
+UPDATE "Users"
+SET "Role" = 'Viewer'
+WHERE "Role" IS NULL;
+
+INSERT INTO "SchemaMigrations" ("Id")
+VALUES ('003_AddUserRoles')
+ON CONFLICT ("Id") DO NOTHING;

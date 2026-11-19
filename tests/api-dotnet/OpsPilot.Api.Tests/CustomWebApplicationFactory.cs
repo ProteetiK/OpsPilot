@@ -1,20 +1,19 @@
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Identity;
 using OpsPilot.Domain.Entities;
 using OpsPilot.Infrastructure.Persistence;
-using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using OpsPilot.Domain.Enums;
 
 namespace OpsPilot.Api.Tests;
 
-public class CustomWebApplicationFactory
-    : WebApplicationFactory<Program>
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     private const string TestSecret =
         "OpsPilot-Integration-Test-Secret-1234567890";
@@ -22,26 +21,29 @@ public class CustomWebApplicationFactory
     private readonly string _databaseName =
         $"OpsPilotTests_{Guid.NewGuid()}";
 
-    protected override void ConfigureWebHost(
-        IWebHostBuilder builder)
+    // Set configuration before the minimal-hosting Program starts.
+    static CustomWebApplicationFactory()
+    {
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__DefaultConnection",
+            "Host=localhost;Database=opspilot_tests;Username=test;Password=test");
+
+        Environment.SetEnvironmentVariable(
+            "Jwt__Secret", TestSecret);
+
+        Environment.SetEnvironmentVariable(
+            "Jwt__Issuer", "OpsPilot.Tests");
+
+        Environment.SetEnvironmentVariable(
+            "Jwt__Audience", "OpsPilot.Tests.Client");
+
+        Environment.SetEnvironmentVariable(
+            "Jwt__AccessTokenMinutes", "30");
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-
-        builder.ConfigureAppConfiguration((context, config) =>
-        {
-            var settings = new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] =
-                    "Host=localhost;Database=opspilot_tests;Username=test;Password=test",
-
-                ["Jwt:Secret"] = TestSecret,
-                ["Jwt:Issuer"] = "OpsPilot.Tests",
-                ["Jwt:Audience"] = "OpsPilot.Tests.Client",
-                ["Jwt:AccessTokenMinutes"] = "30"
-            };
-
-            config.AddInMemoryCollection(settings);
-        });
 
         builder.ConfigureTestServices(services =>
         {
@@ -55,9 +57,10 @@ public class CustomWebApplicationFactory
     }
 
     public async Task SeedUserAsync(
-        string email,
-        string password,
-        bool isActive = true)
+    string email,
+    string password,
+    bool isActive = true,
+    UserRole role = UserRole.Viewer)
     {
         using var scope = Services.CreateScope();
 
@@ -77,6 +80,7 @@ public class CustomWebApplicationFactory
             Email = email.Trim(),
             NormalizedEmail = normalizedEmail,
             IsActive = isActive,
+            Role = role,
             CreatedAtUtc = DateTime.UtcNow
         };
 
