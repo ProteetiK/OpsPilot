@@ -64,6 +64,8 @@ public sealed class AuthService : IAuthService
 
         return new AuthenticatedUser(
             user.Id,
-            user.Email);
+            user.Email,
+            user.Role
+        );
     }
 }

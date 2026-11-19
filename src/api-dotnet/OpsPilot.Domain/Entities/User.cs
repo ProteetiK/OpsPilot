@@ -1,3 +1,5 @@
+using OpsPilot.Domain.Enums;
+
 namespace OpsPilot.Domain.Entities;
 
 public class User
@@ -11,6 +13,8 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
 
     public bool IsActive { get; set; } = true;
+
+    public UserRole Role { get; set; } = UserRole.Viewer;
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
